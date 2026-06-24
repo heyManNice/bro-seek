@@ -1,0 +1,44 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - release
+
+# 设置 GITHUB_TOKEN 权限以允许推送到 gh-pages
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 拉取代码
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 安装 Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # 安装项目依赖
+      - name: Install dependencies
+        run: npm ci
+
+      # 安装 Playwright Chromium
+      - name: Install Playwright
+        run: npm run install:playwright
+
+      # 构建 + 预渲染
+      - name: Build & Pre-render
+        run: npm run prerender
+
+      # 部署到 gh-pages 分支
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
