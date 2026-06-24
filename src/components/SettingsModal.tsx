@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import {
     X,
     Radio,
@@ -60,6 +60,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     const [copied, setCopied] = useState(false)
     const [hostLoading, setHostLoading] = useState(false)
 
+    /** 监听连接状态，真正连接成功后才显示成功提示 */
+    useEffect(() => {
+        if (connectionStatus === ConnectionStatus.Connected) {
+            setConnectSuccess(true)
+        } else {
+            setConnectSuccess(false)
+        }
+    }, [connectionStatus])
+
     const isConnected = connectionStatus === ConnectionStatus.Connected
     const isWaiting = connectionStatus === ConnectionStatus.Waiting
     const isConnecting = connectionStatus === ConnectionStatus.Connecting
@@ -76,8 +85,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
         try {
             onConnectToHost(apiKeyInput.trim())
-            setConnectSuccess(true)
-            setTimeout(() => setConnectSuccess(false), 3000)
         } catch (err) {
             setConnectError(err instanceof Error ? err.message : '连接失败')
         }
@@ -153,7 +160,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* ===== 标题栏 ===== */}
-                    <div className="flex items-center justify-between px-6 py-4 border-b border-line">
+                    <div className="flex items-center justify-between px-6 py-4">
                         <div className="flex items-center gap-2.5">
                             <Server size={18} className="text-accent" />
                             <h2 className="text-base font-semibold text-text-primary">
@@ -204,18 +211,29 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             </p>
                             <div className="pl-[22px]">
                                 <button
-                                    onClick={handleStartHost}
-                                    disabled={isConnected || isWaiting || hostLoading}
-                                    className="
+                                    onClick={isConnected ? () => {
+                                        onDisconnect()
+                                        setApiKeyInput('')
+                                        setConnectError(null)
+                                        setConnectSuccess(false)
+                                    } : handleStartHost}
+                                    disabled={(!isConnected && (isWaiting || hostLoading))}
+                                    className={`
                                         w-full py-2.5 px-4 rounded-xl text-sm font-medium
-                                        bg-surface hover:bg-surface-hover
-                                        text-text-primary border border-line
                                         transition-all duration-200
-                                        disabled:opacity-40 disabled:cursor-not-allowed
                                         flex items-center justify-center gap-2
-                                    "
+                                        ${isConnected
+                                            ? 'bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20'
+                                            : 'bg-surface hover:bg-surface-hover text-text-primary border border-line disabled:opacity-40 disabled:cursor-not-allowed'
+                                        }
+                                    `}
                                 >
-                                    {hostLoading ? (
+                                    {isConnected ? (
+                                        <>
+                                            <Unlink size={14} />
+                                            断开连接
+                                        </>
+                                    ) : hostLoading ? (
                                         <>
                                             <Loader2 size={15} className="animate-spin" />
                                             正在生成 API Key...
@@ -253,9 +271,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                 )}
                             </div>
                         </div>
-
-                        {/* 分割线 */}
-                        <div className="border-t border-line" />
 
                         {/* ===== Client 模式 ===== */}
                         <div>
@@ -312,45 +327,36 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                 )}
 
                                 <button
-                                    onClick={handleConnect}
-                                    disabled={isConnected || isConnecting || !apiKeyInput.trim()}
-                                    className="
+                                    onClick={isConnected ? () => {
+                                        onDisconnect()
+                                        setApiKeyInput('')
+                                        setConnectError(null)
+                                        setConnectSuccess(false)
+                                    } : handleConnect}
+                                    disabled={(!isConnected && (isConnecting || !apiKeyInput.trim()))}
+                                    className={`
                                         w-full py-2.5 px-4 rounded-xl text-sm font-medium
-                                        bg-surface hover:bg-surface-hover
-                                        text-text-primary border border-line
-                                        transition-colors duration-150
-                                        disabled:opacity-40 disabled:cursor-not-allowed
-                                    "
+                                        transition-all duration-150
+                                        flex items-center justify-center gap-2
+                                        ${isConnected
+                                            ? 'bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20'
+                                            : 'bg-surface hover:bg-surface-hover text-text-primary border border-line disabled:opacity-40 disabled:cursor-not-allowed'
+                                        }
+                                    `}
                                 >
-                                    {isConnecting ? '连接中...' : '连接'}
+                                    {isConnected ? (
+                                        <>
+                                            <Unlink size={14} />
+                                            断开连接
+                                        </>
+                                    ) : isConnecting ? (
+                                        '连接中...'
+                                    ) : (
+                                        '连接'
+                                    )}
                                 </button>
                             </div>
                         </div>
-
-                        {/* 断开按钮 */}
-                        {isConnected && (
-                            <button
-                                onClick={() => {
-                                    onDisconnect()
-                                    setApiKeyInput('')
-                                    setConnectError(null)
-                                    setConnectSuccess(false)
-                                }}
-                                className="
-                                    w-full py-2.5 px-4 rounded-xl text-sm font-medium
-                                    bg-red-500/10 hover:bg-red-500/20
-                                    text-red-500 border border-red-500/20
-                                    transition-colors duration-150
-                                    flex items-center justify-center gap-2
-                                "
-                            >
-                                <Unlink size={14} />
-                                断开连接
-                            </button>
-                        )}
-
-                        {/* 分割线 */}
-                        <div className="border-t border-line" />
 
                         {/* ===== 模型选择 ===== */}
                         <div>
@@ -410,7 +416,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     </div>
 
                     {/* ===== 底部 ===== */}
-                    <div className="px-6 py-3 border-t border-line flex justify-end">
+                    <div className="px-6 py-3 flex justify-end">
                         <button
                             onClick={onClose}
                             className="
