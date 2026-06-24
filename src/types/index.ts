@@ -44,6 +44,8 @@ export interface ChatMessage {
     reactions: MessageReactions
     /** 对端原始消息 ID（用于反应匹配） */
     remoteMsgId?: string
+    /** 对端反应版本号（每次对端发来反应时递增，用于触发本地动画） */
+    remoteReactionVersion?: number
 }
 
 /** 对话会话 */

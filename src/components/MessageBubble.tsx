@@ -36,29 +36,29 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     const isAssistant = message.role === 'assistant'
     const isSystem = message.role === 'system'
 
-    // ===== 暴击动画检测 =====
-    const prevTotalRef = useRef(0)
+    // ===== 暴击动画检测（仅对端反应触发） =====
+    const prevRemoteVersionRef = useRef(0)
     const [hitActive, setHitActive] = useState(false)
     const [flyingReactions, setFlyingReactions] = useState<FlyingReaction[]>([])
     const flyIdRef = useRef(0)
 
     useEffect(() => {
-        const total = message.reactions.thumbsUp + message.reactions.thumbsDown
-        if (total > prevTotalRef.current) {
-            // 新增了反应 → 触发暴击
+        const currentVersion = message.remoteReactionVersion ?? 0
+        if (currentVersion > prevRemoteVersionRef.current) {
+            // 对端发来了新反应 → 触发暴击动画
             setHitActive(true)
             setTimeout(() => setHitActive(false), 400)
 
             // 弹出飞出动画
-            const lastType = message.reactions.thumbsUp > message.reactions.thumbsDown ? '👍' : '👎'
+            const lastType = message.reactions.thumbsUp >= message.reactions.thumbsDown ? '👍' : '👎'
             const id = ++flyIdRef.current
             setFlyingReactions((prev) => [...prev, { id, emoji: lastType }])
             setTimeout(() => {
                 setFlyingReactions((prev) => prev.filter((r) => r.id !== id))
             }, 900)
         }
-        prevTotalRef.current = total
-    }, [message.reactions.thumbsUp, message.reactions.thumbsDown])
+        prevRemoteVersionRef.current = currentVersion
+    }, [message.remoteReactionVersion, message.reactions.thumbsUp, message.reactions.thumbsDown])
 
     // ===== 复制功能 =====
     const [copied, setCopied] = useState(false)

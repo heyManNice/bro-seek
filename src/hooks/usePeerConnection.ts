@@ -88,6 +88,7 @@ export function usePeerConnection() {
     // ===== 处理收到的 DataChannel 消息 =====
     const handleData = useCallback(
         (data: unknown) => {
+            console.log('[P2P 收到原始数据]', data)
             const payload = data as DataPayload
             if (!payload || !payload.action) return
 
@@ -209,7 +210,8 @@ export function usePeerConnection() {
                                 } else {
                                     reactions.thumbsDown += 1
                                 }
-                                return { ...m, reactions }
+                                // 递增版本号 → 触发对端反应动画
+                                return { ...m, reactions, remoteReactionVersion: (m.remoteReactionVersion ?? 0) + 1 }
                             }),
                         )
                     }
@@ -466,9 +468,10 @@ export function usePeerConnection() {
     const sendReaction = useCallback(
         (targetMsgId: string, reactionType: 'up' | 'down') => {
             // 先更新本地消息计数（立即显示）
+            // 匹配 id 或 remoteMsgId（点赞对方消息时传的是 remoteMsgId）
             setMessages((prev) =>
                 prev.map((m) => {
-                    if (m.id !== targetMsgId) return m
+                    if (m.id !== targetMsgId && m.remoteMsgId !== targetMsgId) return m
                     const reactions = { ...m.reactions }
                     if (reactionType === 'up') {
                         reactions.thumbsUp += 1
