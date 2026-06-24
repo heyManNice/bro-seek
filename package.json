@@ -7,6 +7,8 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc -b && vite build",
+        "prerender": "tsc -b && vite build && tsx tools/prerender.ts",
+        "install:playwright": "playwright install --with-deps chromium",
         "preview": "vite preview"
     },
     "dependencies": {
@@ -20,8 +22,10 @@
         "@types/react-dom": "^18.3.1",
         "@vitejs/plugin-react": "^4.3.4",
         "autoprefixer": "^10.4.20",
+        "playwright": "^1.61.1",
         "postcss": "^8.4.49",
         "tailwindcss": "^3.4.17",
+        "tsx": "^4.22.4",
         "typescript": "~5.6.2",
         "vite": "^6.0.5"
     }
