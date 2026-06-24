@@ -244,14 +244,27 @@ const InputArea: React.FC<InputAreaProps> = ({
     const canSend = isConnected && inputValue.trim().length > 0
 
     return (
-        <div className={isCentered ? 'w-full max-w-2xl px-6' : 'bg-[var(--bg)] input-slide-down'}>
-            <div className={isCentered ? '' : 'max-w-3xl mx-auto px-4 py-3'}>
+        <div
+            className={
+                isCentered
+                    ? 'absolute inset-x-0 bottom-1/2 translate-y-1/2 flex justify-center z-10 transition-[bottom,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]'
+                    : 'absolute inset-x-0 bottom-0 translate-y-0 z-10 transition-[bottom,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]'
+            }
+        >
+            <div className={isCentered ? 'w-full max-w-2xl px-6 transition-all duration-500' : 'w-full max-w-3xl mx-auto px-4 py-3 transition-all duration-500'}>
+                {/* ===== 居中模式提示文字（输入框上方） ===== */}
+                {isCentered && (
+                    <p className="text-center text-xl font-bold mb-4 leading-relaxed">
+                        进入设置配置 API Key 开始聊天
+                    </p>
+                )}
+
                 {/* ===== 输入框容器 ===== */}
                 <div
                     className="
                         relative flex items-end
                         bg-surface border border-line
-                        rounded-2xl
+                        rounded-full
                         focus-within:border-[var(--text-tertiary)]
                         transition-colors duration-150
                     "
@@ -271,11 +284,12 @@ const InputArea: React.FC<InputAreaProps> = ({
                         className="
                             flex-1 bg-transparent text-text-primary
                             placeholder:text-text-tertiary
-                            rounded-2xl px-4 py-3
+                            rounded-full px-5 py-3
                             resize-none outline-none
                             text-sm leading-relaxed
                             disabled:opacity-40 disabled:cursor-not-allowed
                             font-sans min-h-[44px] max-h-[160px]
+                            overflow-y-auto
                         "
                     />
 
@@ -284,17 +298,16 @@ const InputArea: React.FC<InputAreaProps> = ({
                         onClick={doSend}
                         disabled={!canSend}
                         className="
-                            shrink-0 m-2
-                            w-8 h-8 rounded-xl
-                            bg-accent hover:bg-accent-hover
-                            text-white flex items-center justify-center
+                            shrink-0 m-2 mr-3
+                            w-8 h-8 rounded-full
+                            text-text-secondary hover:text-text-primary
+                            flex items-center justify-center
                             transition-all duration-150
-                            disabled:opacity-20 disabled:cursor-not-allowed disabled:bg-accent
-                            shadow-sm
+                            disabled:opacity-20 disabled:cursor-not-allowed
                         "
                         title="发送消息 (Enter)"
                     >
-                        <Send size={14} />
+                        <Send size={18} />
                     </button>
                 </div>
 

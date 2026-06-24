@@ -65,39 +65,27 @@ const App: React.FC = () => {
 
                 {/* 右侧主区域 */}
                 <div className="flex-1 flex flex-col min-w-0 h-full relative">
-                    {messages.length === 0 ? (
-                        /* ===== 空状态：输入框居中 ===== */
-                        <div className="flex-1 flex flex-col items-center justify-center">
-                            <InputArea
-                                connectionStatus={connectionStatus}
-                                onSendChar={sendChar}
-                                onSendDeleteChar={sendDeleteChar}
-                                onFinishMessage={finishMessage}
-                                onTyping={notifyTyping}
-                                onTypingStop={notifyTypingStop}
-                                isCentered
-                            />
-                        </div>
-                    ) : (
-                        /* ===== 聊天状态：消息列表 + 底部输入框 ===== */
-                        <>
-                            <ChatView
-                                messages={messages}
-                                remoteModelName={remoteModelName}
-                                isRemoteTyping={isRemoteTyping}
-                                connectionStatus={connectionStatus}
-                                onReaction={sendReaction}
-                            />
-                            <InputArea
-                                connectionStatus={connectionStatus}
-                                onSendChar={sendChar}
-                                onSendDeleteChar={sendDeleteChar}
-                                onFinishMessage={finishMessage}
-                                onTyping={notifyTyping}
-                                onTypingStop={notifyTypingStop}
-                            />
-                        </>
+                    {/* ===== 聊天消息列表（有消息时才显示） ===== */}
+                    {messages.length > 0 && (
+                        <ChatView
+                            messages={messages}
+                            remoteModelName={remoteModelName}
+                            isRemoteTyping={isRemoteTyping}
+                            connectionStatus={connectionStatus}
+                            onReaction={sendReaction}
+                        />
                     )}
+
+                    {/* ===== 输入框（始终单实例，绝对定位切换位置） ===== */}
+                    <InputArea
+                        connectionStatus={connectionStatus}
+                        onSendChar={sendChar}
+                        onSendDeleteChar={sendDeleteChar}
+                        onFinishMessage={finishMessage}
+                        onTyping={notifyTyping}
+                        onTypingStop={notifyTypingStop}
+                        isCentered={messages.length === 0}
+                    />
                 </div>
 
                 {/* 设置弹窗 */}
