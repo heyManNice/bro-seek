@@ -88,7 +88,6 @@ export function usePeerConnection() {
     // ===== 处理收到的 DataChannel 消息 =====
     const handleData = useCallback(
         (data: unknown) => {
-            console.log('[P2P 收到原始数据]', data)
             const payload = data as DataPayload
             if (!payload || !payload.action) return
 
