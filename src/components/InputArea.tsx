@@ -255,7 +255,11 @@ const InputArea: React.FC<InputAreaProps> = ({
                 {/* ===== 居中模式提示文字（输入框上方） ===== */}
                 {isCentered && (
                     <p className="text-center text-xl font-bold mb-4 leading-relaxed">
-                        进入设置配置 API Key 开始聊天
+                        {isConnected
+                            ? '开始和你的 Bro 聊天吧'
+                            : isWaiting
+                                ? '等待你的 Bro 连接...'
+                                : '进入设置配置 API Key 开始聊天'}
                     </p>
                 )}
 

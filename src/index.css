@@ -1,3 +1,5 @@
+@import "https://cdn.jsdelivr.net/npm/@lobehub/webfont-harmony-sans-sc@1.0.0/css/index.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -59,6 +61,7 @@ body,
     overflow: hidden;
     background-color: var(--bg);
     color: var(--text-primary);
+    font-family: 'HarmonyOS Sans SC', system-ui, sans-serif;
 }
 
 /* ===== 自定义滚动条 ===== */
