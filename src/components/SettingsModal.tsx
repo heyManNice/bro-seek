@@ -59,6 +59,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     const [connectSuccess, setConnectSuccess] = useState(false)
     const [copied, setCopied] = useState(false)
     const [hostLoading, setHostLoading] = useState(false)
+    /** 记录当前作为哪种角色发起连接: 'host' | 'client' | null */
+    const [startedAs, setStartedAs] = useState<'host' | 'client' | null>(null)
 
     /** 监听连接状态，真正连接成功后才显示成功提示 */
     useEffect(() => {
@@ -84,6 +86,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         }
 
         try {
+            setStartedAs('client')
             onConnectToHost(apiKeyInput.trim())
         } catch (err) {
             setConnectError(err instanceof Error ? err.message : '连接失败')
@@ -127,6 +130,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     const handleStartHost = useCallback(() => {
         if (isConnected || isWaiting) return
         setHostLoading(true)
+        setStartedAs('host')
         onStartHost()
     }, [isConnected, isWaiting, onStartHost])
 
@@ -199,108 +203,112 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         </div>
 
                         {/* ===== Host 模式 ===== */}
-                        <div>
-                            <div className="flex items-center gap-2 mb-1.5">
-                                <Radio size={15} className="text-accent" />
-                                <h3 className="text-sm font-semibold text-text-primary">
-                                    作为 Host（等待 Bro 连接）
-                                </h3>
-                            </div>
-                            <p className="text-xs text-text-secondary mb-3 pl-[22px]">
-                                生成一个 API Key，把它分享给你的 Bro，对方输入后即可建立 P2P 连接。
-                            </p>
-                            <div className="pl-[22px]">
-                                <button
-                                    onClick={isConnected ? () => {
-                                        onDisconnect()
-                                        setApiKeyInput('')
-                                        setConnectError(null)
-                                        setConnectSuccess(false)
-                                    } : handleStartHost}
-                                    disabled={(!isConnected && (isWaiting || hostLoading))}
-                                    className={`
+                        {(startedAs === 'host' || (!startedAs && !isConnected)) && (
+                            <div>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <Radio size={15} className="text-accent" />
+                                    <h3 className="text-sm font-semibold text-text-primary">
+                                        作为 Host（等待 Bro 连接）
+                                    </h3>
+                                </div>
+                                <p className="text-xs text-text-secondary mb-3 pl-[22px]">
+                                    生成一个 API Key，把它分享给你的 Bro，对方输入后即可建立 P2P 连接。
+                                </p>
+                                <div className="pl-[22px]">
+                                    <button
+                                        onClick={isConnected ? () => {
+                                            onDisconnect()
+                                            setApiKeyInput('')
+                                            setConnectError(null)
+                                            setConnectSuccess(false)
+                                            setStartedAs(null)
+                                        } : handleStartHost}
+                                        disabled={(!isConnected && (isWaiting || hostLoading))}
+                                        className={`
                                         w-full py-2.5 px-4 rounded-xl text-sm font-medium
                                         transition-all duration-200
                                         flex items-center justify-center gap-2
                                         ${isConnected
-                                            ? 'bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20'
-                                            : 'bg-surface hover:bg-surface-hover text-text-primary border border-line disabled:opacity-40 disabled:cursor-not-allowed'
-                                        }
+                                                ? 'bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20'
+                                                : 'bg-surface hover:bg-surface-hover text-text-primary border border-line disabled:opacity-40 disabled:cursor-not-allowed'
+                                            }
                                     `}
-                                >
-                                    {isConnected ? (
-                                        <>
-                                            <Unlink size={14} />
-                                            断开连接
-                                        </>
-                                    ) : hostLoading ? (
-                                        <>
-                                            <Loader2 size={15} className="animate-spin" />
-                                            正在生成 API Key...
-                                        </>
-                                    ) : isWaiting ? (
-                                        '已启动，等待中...'
-                                    ) : (
-                                        '生成 API Key 并等待连接'
-                                    )}
-                                </button>
+                                    >
+                                        {isConnected ? (
+                                            <>
+                                                <Unlink size={14} />
+                                                断开连接
+                                            </>
+                                        ) : hostLoading ? (
+                                            <>
+                                                <Loader2 size={15} className="animate-spin" />
+                                                正在生成 API Key...
+                                            </>
+                                        ) : isWaiting ? (
+                                            '已启动，等待中...'
+                                        ) : (
+                                            '生成 API Key 并等待连接'
+                                        )}
+                                    </button>
 
-                                {/* 显示生成的 API Key */}
-                                {pseudoApiKey && (
-                                    <div className="mt-3 p-3 bg-surface rounded-xl border border-line">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs text-text-secondary font-mono">
-                                                你的 API Key
-                                            </span>
-                                            <button
-                                                onClick={copyApiKey}
-                                                className="
+                                    {/* 显示生成的 API Key */}
+                                    {pseudoApiKey && (
+                                        <div className="mt-3 p-3 bg-surface rounded-xl border border-line">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs text-text-secondary font-mono">
+                                                    你的 API Key
+                                                </span>
+                                                <button
+                                                    onClick={copyApiKey}
+                                                    className="
                                                     flex items-center gap-1 text-xs text-accent
                                                     hover:text-accent-hover transition-colors font-mono
                                                 "
-                                                title="复制到剪贴板"
-                                            >
-                                                {copied ? <Check size={12} /> : <Copy size={12} />}
-                                                {copied ? '已复制' : '复制'}
-                                            </button>
+                                                    title="复制到剪贴板"
+                                                >
+                                                    {copied ? <Check size={12} /> : <Copy size={12} />}
+                                                    {copied ? '已复制' : '复制'}
+                                                </button>
+                                            </div>
+                                            <code className="text-xs text-green-600 dark:text-green-400 break-all font-mono select-all block">
+                                                {pseudoApiKey}
+                                            </code>
                                         </div>
-                                        <code className="text-xs text-green-600 dark:text-green-400 break-all font-mono select-all block">
-                                            {pseudoApiKey}
-                                        </code>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* ===== Client 模式 ===== */}
-                        <div>
-                            <div className="flex items-center gap-2 mb-1.5">
-                                <Plug size={15} className="text-accent" />
-                                <h3 className="text-sm font-semibold text-text-primary">
-                                    作为 Client（连接 Bro）
-                                </h3>
-                            </div>
-                            <p className="text-xs text-text-secondary mb-3 pl-[22px]">
-                                输入 Bro 分享给你的 API Key，建立 P2P 连接。
-                            </p>
+                        {(startedAs === 'client' || (!startedAs && !isConnected)) && (
+                            <div>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <Plug size={15} className="text-accent" />
+                                    <h3 className="text-sm font-semibold text-text-primary">
+                                        作为 Client（连接 Bro）
+                                    </h3>
+                                </div>
+                                <p className="text-xs text-text-secondary mb-3 pl-[22px]">
+                                    输入 Bro 分享给你的 API Key，建立 P2P 连接。
+                                </p>
 
-                            <div className="space-y-2 pl-[22px]">
-                                {/* API Key 输入框 */}
-                                <div>
-                                    <label className="block text-xs text-text-secondary mb-1 font-mono">
-                                        API Key
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={apiKeyInput}
-                                        onChange={(e) => {
-                                            setApiKeyInput(e.target.value)
-                                            setConnectError(null)
-                                            setConnectSuccess(false)
-                                        }}
-                                        placeholder="sk-broseek-..."
-                                        disabled={isConnected}
-                                        className="
+                                <div className="space-y-2 pl-[22px]">
+                                    {/* API Key 输入框 */}
+                                    <div>
+                                        <label className="block text-xs text-text-secondary mb-1 font-mono">
+                                            API Key
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={apiKeyInput}
+                                            onChange={(e) => {
+                                                setApiKeyInput(e.target.value)
+                                                setConnectError(null)
+                                                setConnectSuccess(false)
+                                            }}
+                                            placeholder="sk-broseek-..."
+                                            disabled={isConnected}
+                                            className="
                                             w-full bg-bg text-text-primary font-mono text-sm
                                             placeholder:text-text-tertiary
                                             rounded-xl px-3 py-2.5 outline-none
@@ -309,54 +317,56 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             transition-colors duration-150
                                             disabled:opacity-50
                                         "
-                                    />
-                                </div>
+                                        />
+                                    </div>
 
-                                {/* 错误/成功提示 */}
-                                {connectError && (
-                                    <p className="text-xs text-red-500 flex items-center gap-1.5">
-                                        <AlertCircle size={12} />
-                                        {connectError}
-                                    </p>
-                                )}
-                                {connectSuccess && (
-                                    <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1.5">
-                                        <Check size={12} />
-                                        Base model connected successfully.
-                                    </p>
-                                )}
+                                    {/* 错误/成功提示 */}
+                                    {connectError && (
+                                        <p className="text-xs text-red-500 flex items-center gap-1.5">
+                                            <AlertCircle size={12} />
+                                            {connectError}
+                                        </p>
+                                    )}
+                                    {connectSuccess && (
+                                        <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1.5">
+                                            <Check size={12} />
+                                            Base model connected successfully.
+                                        </p>
+                                    )}
 
-                                <button
-                                    onClick={isConnected ? () => {
-                                        onDisconnect()
-                                        setApiKeyInput('')
-                                        setConnectError(null)
-                                        setConnectSuccess(false)
-                                    } : handleConnect}
-                                    disabled={(!isConnected && (isConnecting || !apiKeyInput.trim()))}
-                                    className={`
+                                    <button
+                                        onClick={isConnected ? () => {
+                                            onDisconnect()
+                                            setApiKeyInput('')
+                                            setConnectError(null)
+                                            setConnectSuccess(false)
+                                            setStartedAs(null)
+                                        } : handleConnect}
+                                        disabled={(!isConnected && (isConnecting || !apiKeyInput.trim()))}
+                                        className={`
                                         w-full py-2.5 px-4 rounded-xl text-sm font-medium
                                         transition-all duration-150
                                         flex items-center justify-center gap-2
                                         ${isConnected
-                                            ? 'bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20'
-                                            : 'bg-surface hover:bg-surface-hover text-text-primary border border-line disabled:opacity-40 disabled:cursor-not-allowed'
-                                        }
+                                                ? 'bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20'
+                                                : 'bg-surface hover:bg-surface-hover text-text-primary border border-line disabled:opacity-40 disabled:cursor-not-allowed'
+                                            }
                                     `}
-                                >
-                                    {isConnected ? (
-                                        <>
-                                            <Unlink size={14} />
-                                            断开连接
-                                        </>
-                                    ) : isConnecting ? (
-                                        '连接中...'
-                                    ) : (
-                                        '连接'
-                                    )}
-                                </button>
+                                    >
+                                        {isConnected ? (
+                                            <>
+                                                <Unlink size={14} />
+                                                断开连接
+                                            </>
+                                        ) : isConnecting ? (
+                                            '连接中...'
+                                        ) : (
+                                            '连接'
+                                        )}
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* ===== 模型选择 ===== */}
                         <div>
