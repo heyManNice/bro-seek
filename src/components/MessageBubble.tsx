@@ -22,7 +22,7 @@ interface MessageBubbleProps {
 /** 反应弹出飞出的条目 */
 interface FlyingReaction {
     id: number
-    emoji: string
+    type: 'up' | 'down'
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -38,6 +38,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
     // ===== 暴击动画检测（仅对端反应触发） =====
     const prevRemoteVersionRef = useRef(0)
+    const prevThumbsUpRef = useRef(0)
+    const prevThumbsDownRef = useRef(0)
     const [hitActive, setHitActive] = useState(false)
     const [flyingReactions, setFlyingReactions] = useState<FlyingReaction[]>([])
     const flyIdRef = useRef(0)
@@ -49,15 +51,18 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             setHitActive(true)
             setTimeout(() => setHitActive(false), 400)
 
-            // 弹出飞出动画
-            const lastType = message.reactions.thumbsUp >= message.reactions.thumbsDown ? '👍' : '👎'
+            // 判断是点赞还是踩触发的（对比前后计数）
+            const reactionType: 'up' | 'down' =
+                message.reactions.thumbsUp > prevThumbsUpRef.current ? 'up' : 'down'
             const id = ++flyIdRef.current
-            setFlyingReactions((prev) => [...prev, { id, emoji: lastType }])
+            setFlyingReactions((prev) => [...prev, { id, type: reactionType }])
             setTimeout(() => {
                 setFlyingReactions((prev) => prev.filter((r) => r.id !== id))
             }, 900)
         }
         prevRemoteVersionRef.current = currentVersion
+        prevThumbsUpRef.current = message.reactions.thumbsUp
+        prevThumbsDownRef.current = message.reactions.thumbsDown
     }, [message.remoteReactionVersion, message.reactions.thumbsUp, message.reactions.thumbsDown])
 
     // ===== 复制功能 =====
@@ -83,8 +88,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     // ===== 用户消息 - 右对齐、简洁气泡 =====
     if (isUser) {
         return (
-            <div className="animate-fade-in">
-                <div className="max-w-3xl mx-auto w-full px-4 py-1.5 flex justify-end">
+            <div className={`animate-fade-in relative ${hitActive ? 'reaction-hit' : ''}`}>
+                <div className="max-w-3xl mx-auto w-full px-4 py-1.5 flex justify-end relative">
                     <div
                         className="
                             max-w-[80%] px-4 py-2.5
@@ -96,6 +101,20 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                     >
                         {message.content}
                     </div>
+
+                    {/* ===== 暴击飞出动画（用户消息） ===== */}
+                    {flyingReactions.map((fr) => (
+                        <div
+                            key={fr.id}
+                            className="
+                                reaction-number-fly
+                                absolute top-0 right-12
+                                text-accent pointer-events-none select-none
+                            "
+                        >
+                            {fr.type === 'up' ? <ThumbsUp size={20} /> : <ThumbsDown size={20} />}
+                        </div>
+                    ))}
                 </div>
             </div>
         )
@@ -191,18 +210,18 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                     </div>
                 )}
 
-                {/* ===== 暴击飞出动画 ===== */}
+                {/* ===== 暴击飞出动画（助手消息） ===== */}
                 {flyingReactions.map((fr) => (
                     <div
                         key={fr.id}
                         className="
                             reaction-number-fly
                             absolute top-0 left-12
-                            text-2xl pointer-events-none select-none
+                            text-accent pointer-events-none select-none
                             z-10
                         "
                     >
-                        {fr.emoji}
+                        {fr.type === 'up' ? <ThumbsUp size={20} /> : <ThumbsDown size={20} />}
                     </div>
                 ))}
             </div>
