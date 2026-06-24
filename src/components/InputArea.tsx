@@ -20,6 +20,8 @@ interface InputAreaProps {
     onFinishMessage: () => void
     onTyping: () => void
     onTypingStop: () => void
+    /** 居中模式：空状态时输入框显示在屏幕中央 */
+    isCentered?: boolean
 }
 
 const InputArea: React.FC<InputAreaProps> = ({
@@ -29,6 +31,7 @@ const InputArea: React.FC<InputAreaProps> = ({
     onFinishMessage,
     onTyping,
     onTypingStop,
+    isCentered = false,
 }) => {
     const [inputValue, setInputValue] = useState('')
     const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -241,8 +244,8 @@ const InputArea: React.FC<InputAreaProps> = ({
     const canSend = isConnected && inputValue.trim().length > 0
 
     return (
-        <div className="bg-[var(--bg)]">
-            <div className="max-w-3xl mx-auto px-4 py-3">
+        <div className={isCentered ? 'w-full max-w-2xl px-6' : 'bg-[var(--bg)] input-slide-down'}>
+            <div className={isCentered ? '' : 'max-w-3xl mx-auto px-4 py-3'}>
                 {/* ===== 输入框容器 ===== */}
                 <div
                     className="
@@ -296,15 +299,27 @@ const InputArea: React.FC<InputAreaProps> = ({
                 </div>
 
                 {/* ===== 底部提示信息 ===== */}
-                <div className="flex items-center justify-center mt-2 px-1">
-                    <p className="text-[11px] text-text-tertiary font-mono">
-                        {isConnected
-                            ? '实时流式传输中 · 每个按键都会即时发送给 Bro'
-                            : isWaiting
-                                ? '分享你的 API Key 给 Bro...'
-                                : '进入设置配置 API Key 开始聊天'}
-                    </p>
-                </div>
+                {isCentered ? (
+                    <div className="flex items-center justify-center mt-4 px-1">
+                        <p className="text-[11px] text-text-tertiary font-mono">
+                            {isConnected
+                                ? '开始和你的 Bro 聊天吧'
+                                : isWaiting
+                                    ? '分享你的 API Key 给 Bro...'
+                                    : '进入设置配置 API Key 开始聊天'}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center mt-2 px-1">
+                        <p className="text-[11px] text-text-tertiary font-mono">
+                            {isConnected
+                                ? '实时流式传输中 · 每个按键都会即时发送给 Bro'
+                                : isWaiting
+                                    ? '分享你的 API Key 给 Bro...'
+                                    : '进入设置配置 API Key 开始聊天'}
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     )

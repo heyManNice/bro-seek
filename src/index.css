@@ -259,3 +259,20 @@ body,
 .reaction-number-fly {
     animation: numberPop 0.8s ease-out forwards;
 }
+
+/* 输入框从居中位置下落到屏幕底部的动画 */
+@keyframes slideDownFromCenter {
+    from {
+        opacity: 0.6;
+        transform: translateY(-40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.input-slide-down {
+    animation: slideDownFromCenter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { Handshake, ChevronDown, Gift, Share2, MoreHorizontal } from 'lucide-react'
+import { ChevronDown, Gift, Share2, MoreHorizontal } from 'lucide-react'
 import { ConnectionStatus, type ChatMessage } from '@/types'
 import MessageBubble from './MessageBubble'
 
@@ -32,9 +32,6 @@ const ChatView: React.FC<ChatViewProps> = ({
             container.scrollTop = container.scrollHeight
         }
     }, [messages, isRemoteTyping])
-
-    const isConnected = connectionStatus === ConnectionStatus.Connected
-    const isWaiting = connectionStatus === ConnectionStatus.Waiting
 
     // ===== 计算最后一条已完成的 assistant 消息 index =====
     const lastCompletedAssistantIdx = (() => {
@@ -102,50 +99,6 @@ const ChatView: React.FC<ChatViewProps> = ({
                 ref={scrollContainerRef}
                 className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth"
             >
-                {/* ===== 空状态 / 欢迎界面 ===== */}
-                {messages.length === 0 && (
-                    <div className="flex flex-col items-center justify-center h-full px-4 text-center">
-                        {/* Logo 图标 */}
-                        <div
-                            className="
-                                w-16 h-16 rounded-2xl
-                                bg-surface border border-line
-                                flex items-center justify-center
-                                mb-6 shadow-sm
-                            "
-                        >
-                            <Handshake size={32} className="text-text-secondary" strokeWidth={1.5} />
-                        </div>
-
-                        <h2 className="text-xl font-semibold text-text-primary mb-2">
-                            {isWaiting
-                                ? '等待你的 Bro 连接...'
-                                : isConnected
-                                    ? '已连接！开始和你的 Bro 聊天吧'
-                                    : '欢迎使用 BroSeek'}
-                        </h2>
-                        <p className="text-sm text-text-secondary max-w-md leading-relaxed">
-                            {isWaiting
-                                ? '复制你的 API Key 分享给对方，或者等待对方输入你的 API Key 来建立 P2P 连接。'
-                                : isConnected
-                                    ? '在这里，没有硅基 AI，只有你的碳基好兄弟。你每打一个字，对方都会实时看到。'
-                                    : '点击齿轮图标进入设置，你可以生成 API Key 等待 Bro 连接，或输入 Bro 的 API Key 主动连接。'}
-                        </p>
-
-                        {/* 等待连接时的动画 */}
-                        {isWaiting && (
-                            <div className="flex items-center gap-2 mt-6 text-text-tertiary">
-                                <div className="dot-pulse">
-                                    <span />
-                                    <span />
-                                    <span />
-                                </div>
-                                <span className="text-xs font-mono">等待 P2P 握手...</span>
-                            </div>
-                        )}
-                    </div>
-                )}
-
                 {/* ===== 消息列表 ===== */}
                 {messages.map((msg, index) => (
                     <MessageBubble

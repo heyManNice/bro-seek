@@ -65,26 +65,39 @@ const App: React.FC = () => {
 
                 {/* 右侧主区域 */}
                 <div className="flex-1 flex flex-col min-w-0 h-full relative">
-                    {/* 聊天视窗 */}
-                    <ChatView
-                        messages={messages}
-                        remoteModelName={remoteModelName}
-                        isRemoteTyping={isRemoteTyping}
-                        connectionStatus={connectionStatus}
-                        onReaction={sendReaction}
-                    />
-
-                    {/* 底部输入区 */}
-                    <InputArea
-                        connectionStatus={connectionStatus}
-                        onSendChar={sendChar}
-                        onSendDeleteChar={sendDeleteChar}
-                        onFinishMessage={finishMessage}
-                        onTyping={notifyTyping}
-                        onTypingStop={notifyTypingStop}
-                    />
-
-                    {/* (设置按钮已移至侧边栏) */}
+                    {messages.length === 0 ? (
+                        /* ===== 空状态：输入框居中 ===== */
+                        <div className="flex-1 flex flex-col items-center justify-center">
+                            <InputArea
+                                connectionStatus={connectionStatus}
+                                onSendChar={sendChar}
+                                onSendDeleteChar={sendDeleteChar}
+                                onFinishMessage={finishMessage}
+                                onTyping={notifyTyping}
+                                onTypingStop={notifyTypingStop}
+                                isCentered
+                            />
+                        </div>
+                    ) : (
+                        /* ===== 聊天状态：消息列表 + 底部输入框 ===== */
+                        <>
+                            <ChatView
+                                messages={messages}
+                                remoteModelName={remoteModelName}
+                                isRemoteTyping={isRemoteTyping}
+                                connectionStatus={connectionStatus}
+                                onReaction={sendReaction}
+                            />
+                            <InputArea
+                                connectionStatus={connectionStatus}
+                                onSendChar={sendChar}
+                                onSendDeleteChar={sendDeleteChar}
+                                onFinishMessage={finishMessage}
+                                onTyping={notifyTyping}
+                                onTypingStop={notifyTypingStop}
+                            />
+                        </>
+                    )}
                 </div>
 
                 {/* 设置弹窗 */}
