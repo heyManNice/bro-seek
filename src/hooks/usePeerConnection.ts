@@ -40,7 +40,7 @@ export function usePeerConnection() {
     const [pseudoApiKey, setPseudoApiKey] = useState<string | null>(null)
     const [remotePeerId, setRemotePeerId] = useState<string | null>(null)
     const [localModelName, setLocalModelName] = useState<string>(
-        'BroSeek-R1 (深度思考中)',
+        localStorage.getItem('broseek-model-name') || 'BroSeek-R1 (深度思考中)',
     )
     const [remoteModelName, setRemoteModelName] = useState<string>(
         'BroSeek-R1',
@@ -457,6 +457,7 @@ export function usePeerConnection() {
     const updateModelName = useCallback(
         (name: string) => {
             setLocalModelName(name)
+            localStorage.setItem('broseek-model-name', name)
             if (connRef.current) {
                 sendModelName(connRef.current, name)
             }
