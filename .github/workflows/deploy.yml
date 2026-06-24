@@ -5,14 +5,23 @@ on:
     branches:
       - release
 
-# 设置 GITHUB_TOKEN 权限以允许推送到 gh-pages
+# GitHub Pages 部署权限
 permissions:
-  contents: write
+  contents: read
   pages: write
+  id-token: write
+
+# 同时只允许一次部署，跳过排队中的运行
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       # 拉取代码
       - name: Checkout
@@ -36,9 +45,13 @@ jobs:
       - name: Build & Pre-render
         run: npm run prerender
 
-      # 部署到 gh-pages 分支
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      # 上传 Pages 产物
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          path: './dist'
+
+      # 部署到 GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
