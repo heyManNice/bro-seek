@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { type ChatMessage } from '@/types'
 import { Copy, ThumbsUp, ThumbsDown, Check } from 'lucide-react'
 
@@ -7,6 +7,7 @@ import { Copy, ThumbsUp, ThumbsDown, Check } from 'lucide-react'
  * ChatGPT 风格：
  * - 用户消息：右对齐、简洁圆角气泡
  * - 助手消息：左对齐、无气泡背景、完成后显示反馈按钮
+ * - 收到对方反应时触发暴击动画
  */
 interface MessageBubbleProps {
     message: ChatMessage
@@ -16,6 +17,12 @@ interface MessageBubbleProps {
     isCompletedAssistantMsg: boolean
     /** 发送反应回调 */
     onReaction?: (msgId: string, type: 'up' | 'down') => void
+}
+
+/** 反应弹出飞出的条目 */
+interface FlyingReaction {
+    id: number
+    emoji: string
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -28,6 +35,30 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     const isUser = message.role === 'user'
     const isAssistant = message.role === 'assistant'
     const isSystem = message.role === 'system'
+
+    // ===== 暴击动画检测 =====
+    const prevTotalRef = useRef(0)
+    const [hitActive, setHitActive] = useState(false)
+    const [flyingReactions, setFlyingReactions] = useState<FlyingReaction[]>([])
+    const flyIdRef = useRef(0)
+
+    useEffect(() => {
+        const total = message.reactions.thumbsUp + message.reactions.thumbsDown
+        if (total > prevTotalRef.current) {
+            // 新增了反应 → 触发暴击
+            setHitActive(true)
+            setTimeout(() => setHitActive(false), 400)
+
+            // 弹出飞出动画
+            const lastType = message.reactions.thumbsUp > message.reactions.thumbsDown ? '👍' : '👎'
+            const id = ++flyIdRef.current
+            setFlyingReactions((prev) => [...prev, { id, emoji: lastType }])
+            setTimeout(() => {
+                setFlyingReactions((prev) => prev.filter((r) => r.id !== id))
+            }, 900)
+        }
+        prevTotalRef.current = total
+    }, [message.reactions.thumbsUp, message.reactions.thumbsDown])
 
     // ===== 复制功能 =====
     const [copied, setCopied] = useState(false)
@@ -72,8 +103,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
     // ===== 助手消息 - 左对齐、无气泡 =====
     return (
-        <div className="animate-fade-in">
-            <div className="max-w-3xl mx-auto w-full px-4 py-1.5">
+        <div className={`animate-fade-in relative ${hitActive ? 'reaction-hit' : ''}`}>
+            <div className="max-w-3xl mx-auto w-full px-4 py-1.5 relative">
                 {/* 消息文本 */}
                 <div
                     className={`
@@ -120,7 +151,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
                         {/* 点赞 */}
                         <button
-                            onClick={() => onReaction?.(message.id, 'up')}
+                            onClick={() => onReaction?.(message.remoteMsgId || message.id, 'up')}
                             className="
                                 p-1.5 rounded-lg
                                 text-text-tertiary hover:text-text-secondary
@@ -140,7 +171,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
                         {/* 点踩 */}
                         <button
-                            onClick={() => onReaction?.(message.id, 'down')}
+                            onClick={() => onReaction?.(message.remoteMsgId || message.id, 'down')}
                             className="
                                 p-1.5 rounded-lg
                                 text-text-tertiary hover:text-text-secondary
@@ -159,6 +190,21 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                         </button>
                     </div>
                 )}
+
+                {/* ===== 暴击飞出动画 ===== */}
+                {flyingReactions.map((fr) => (
+                    <div
+                        key={fr.id}
+                        className="
+                            reaction-number-fly
+                            absolute top-0 left-12
+                            text-2xl pointer-events-none select-none
+                            z-10
+                        "
+                    >
+                        {fr.emoji}
+                    </div>
+                ))}
             </div>
         </div>
     )

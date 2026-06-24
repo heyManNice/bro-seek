@@ -4,10 +4,11 @@ import { DataAction, type DataPayload } from '@/types'
 /**
  * 通过 DataChannel 发送流式字符
  */
-export function sendStreamChar(conn: DataConnection, char: string): void {
+export function sendStreamChar(conn: DataConnection, char: string, senderMsgId?: string): void {
     const payload: DataPayload = {
         action: DataAction.StreamChar,
         char,
+        senderMsgId,
     }
     conn.send(payload)
 }

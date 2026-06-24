@@ -124,6 +124,8 @@ export function usePeerConnection() {
                                 timestamp: Date.now(),
                                 isStreaming: true,
                                 reactions: { thumbsUp: 0, thumbsDown: 0 },
+                                // 存储对端原始消息 ID，用于反应匹配
+                                remoteMsgId: payload.senderMsgId,
                             }
                             streamingMsgIdRef.current = newMsg.id
                             return [...prev, newMsg]
@@ -196,10 +198,11 @@ export function usePeerConnection() {
 
                 case DataAction.Reaction: {
                     // 对端对我发送的消息点了反应
+                    // 通过 local id 或 remoteMsgId 匹配目标消息
                     if (payload.targetMsgId && payload.reactionType) {
                         setMessages((prev) =>
                             prev.map((m) => {
-                                if (m.id !== payload.targetMsgId) return m
+                                if (m.id !== payload.targetMsgId && m.remoteMsgId !== payload.targetMsgId) return m
                                 const reactions = { ...m.reactions }
                                 if (payload.reactionType === 'up') {
                                     reactions.thumbsUp += 1
@@ -356,6 +359,13 @@ export function usePeerConnection() {
         (char: string) => {
             if (!connRef.current) return
 
+            // 同步确定消息 ID（首次打字生成，后续复用），用于 P2P 传递
+            const senderMsgId = localStreamingMsgIdRef.current ?? (() => {
+                const id = genMsgId()
+                localStreamingMsgIdRef.current = id
+                return id
+            })()
+
             // 确保本地有对应的 user 消息在构建中
             setMessages((prev) => {
                 const streamingLocal = prev.find(
@@ -370,19 +380,18 @@ export function usePeerConnection() {
                 }
                 // 创建新的本地用户消息
                 const newMsg: ChatMessage = {
-                    id: genMsgId(),
+                    id: senderMsgId,
                     role: MessageRole.User,
                     content: char,
                     timestamp: Date.now(),
                     isStreaming: true,
                     reactions: { thumbsUp: 0, thumbsDown: 0 },
                 }
-                localStreamingMsgIdRef.current = newMsg.id
                 return [...prev, newMsg]
             })
 
-            // 通过 DataChannel 发送给对方
-            sendStreamChar(connRef.current, char)
+            // 通过 DataChannel 发送给对方（携带发送端消息 ID）
+            sendStreamChar(connRef.current, char, senderMsgId)
         },
         [genMsgId],
     )
@@ -456,7 +465,7 @@ export function usePeerConnection() {
     // ===== 发送反应（点赞/踩） =====
     const sendReaction = useCallback(
         (targetMsgId: string, reactionType: 'up' | 'down') => {
-            // 本地增加计数
+            // 先更新本地消息计数（立即显示）
             setMessages((prev) =>
                 prev.map((m) => {
                     if (m.id !== targetMsgId) return m
@@ -469,7 +478,7 @@ export function usePeerConnection() {
                     return { ...m, reactions }
                 }),
             )
-            // 通知对端
+            // 再通知对端
             if (connRef.current) {
                 sendReactionToPeer(connRef.current, targetMsgId, reactionType)
             }

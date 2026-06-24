@@ -42,6 +42,8 @@ export interface ChatMessage {
     isStreaming: boolean
     /** 反应计数（点赞/踩） */
     reactions: MessageReactions
+    /** 对端原始消息 ID（用于反应匹配） */
+    remoteMsgId?: string
 }
 
 /** 对话会话 */
@@ -85,6 +87,8 @@ export interface DataPayload {
     modelName?: string
     /** 删除次数（Backspace 时使用，连续退格可批量） */
     deleteCount?: number
+    /** 发送端原始消息 ID（StreamChar 时携带，用于对端反应匹配） */
+    senderMsgId?: string
     /** 目标消息 ID（Reaction 时使用） */
     targetMsgId?: string
     /** 反应类型：'up' | 'down'（Reaction 时使用） */
