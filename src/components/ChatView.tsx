@@ -46,7 +46,7 @@ const ChatView: React.FC<ChatViewProps> = ({
     return (
         <div className="flex-1 flex flex-col h-full min-w-0">
             {/* ===== 顶栏：模型名称 + 操作按钮 ===== */}
-            <div className="flex items-center justify-between px-4 py-2.5 shrink-0">
+            <div className="flex items-center justify-between md:px-4 pl-14 pr-4 py-2.5 shrink-0">
                 {/* 左侧：模型名称 */}
                 <div className="flex items-center gap-1.5">
                     <span className="text-sm font-semibold text-text-primary">

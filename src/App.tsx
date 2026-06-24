@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react'
+import { Menu } from 'lucide-react'
 import { usePeerConnection } from '@/hooks/usePeerConnection'
 import { ConnectionStatus } from '@/types'
 import { ThemeProvider } from '@/contexts/ThemeContext'
@@ -52,16 +53,49 @@ const App: React.FC = () => {
 
     return (
         <ThemeProvider>
-            <div className="h-full w-full flex bg-[var(--bg)] transition-colors duration-200">
+            <div className="h-full w-full flex bg-[var(--bg)] transition-colors duration-200 relative">
+                {/* 移动端菜单按钮 */}
+                <button
+                    onClick={toggleSidebar}
+                    className="
+                        md:hidden fixed top-2 left-3 z-30
+                        w-9 h-9 rounded-xl
+                        text-text-secondary hover:text-text-primary
+                        flex items-center justify-center
+                        transition-colors duration-150
+                    "
+                    title="打开菜单"
+                >
+                    <Menu size={18} />
+                </button>
+
+                {/* 移动端遮罩层 */}
+                {sidebarCollapsed === false && (
+                    <div
+                        className="
+                            md:hidden fixed inset-0 z-30
+                            bg-black/40
+                            transition-opacity duration-200
+                        "
+                        onClick={toggleSidebar}
+                    />
+                )}
+
                 {/* 左侧边栏 */}
-                <Sidebar
-                    collapsed={sidebarCollapsed}
-                    onToggleCollapse={toggleSidebar}
-                    connectionStatus={connectionStatus}
-                    messages={messages}
-                    onResetContext={resetContext}
-                    onOpenSettings={handleOpenSettings}
-                />
+                <div className={`
+                    max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-40
+                    max-md:transition-transform max-md:duration-200
+                    ${sidebarCollapsed ? 'max-md:-translate-x-full' : 'max-md:translate-x-0'}
+                `}>
+                    <Sidebar
+                        collapsed={sidebarCollapsed}
+                        onToggleCollapse={toggleSidebar}
+                        connectionStatus={connectionStatus}
+                        messages={messages}
+                        onResetContext={resetContext}
+                        onOpenSettings={handleOpenSettings}
+                    />
+                </div>
 
                 {/* 右侧主区域 */}
                 <div className="flex-1 flex flex-col min-w-0 h-full relative">
