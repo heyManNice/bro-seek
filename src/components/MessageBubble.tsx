@@ -57,11 +57,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                     <div
                         className="
                             max-w-[80%] px-4 py-2.5
-                            bg-[var(--text-primary)]/[0.06]
                             rounded-3xl rounded-br-lg
                             text-sm leading-relaxed whitespace-pre-wrap break-words
                             text-text-primary
                         "
+                        style={{ backgroundColor: 'color-mix(in srgb, var(--text-primary) 8%, transparent)' }}
                     >
                         {message.content}
                     </div>
