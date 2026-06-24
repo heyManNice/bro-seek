@@ -241,7 +241,7 @@ const InputArea: React.FC<InputAreaProps> = ({
     const canSend = isConnected && inputValue.trim().length > 0
 
     return (
-        <div className="border-t border-line bg-[var(--bg)]">
+        <div className="bg-[var(--bg)]">
             <div className="max-w-3xl mx-auto px-4 py-3">
                 {/* ===== 输入框容器 ===== */}
                 <div
