@@ -97,7 +97,7 @@ const ChatView: React.FC<ChatViewProps> = ({
             {/* 消息列表区域 */}
             <div
                 ref={scrollContainerRef}
-                className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth"
+                className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth pb-40"
             >
                 {/* ===== 消息列表 ===== */}
                 {messages.map((msg, index) => (
