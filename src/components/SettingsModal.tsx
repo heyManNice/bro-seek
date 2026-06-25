@@ -59,6 +59,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     const [connectSuccess, setConnectSuccess] = useState(false)
     const [copied, setCopied] = useState(false)
     const [hostLoading, setHostLoading] = useState(false)
+    const [clientLoading, setClientLoading] = useState(false)
     /** 记录当前作为哪种角色发起连接: 'host' | 'client' | null */
     const [startedAs, setStartedAs] = useState<'host' | 'client' | null>(null)
 
@@ -66,10 +67,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     useEffect(() => {
         if (connectionStatus === ConnectionStatus.Connected) {
             setConnectSuccess(true)
+            setClientLoading(false)
+        } else if (
+            connectionStatus === ConnectionStatus.Disconnected &&
+            clientLoading
+        ) {
+            setClientLoading(false)
+            setConnectError('连接失败，请检查 API Key 是否正确或对方是否在线')
         } else {
             setConnectSuccess(false)
         }
-    }, [connectionStatus])
+    }, [connectionStatus, clientLoading])
 
     const isConnected = connectionStatus === ConnectionStatus.Connected
     const isWaiting = connectionStatus === ConnectionStatus.Waiting
@@ -86,9 +94,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         }
 
         try {
+            setClientLoading(true)
             setStartedAs('client')
             onConnectToHost(apiKeyInput.trim())
         } catch (err) {
+            setClientLoading(false)
             setConnectError(err instanceof Error ? err.message : '连接失败')
         }
     }, [apiKeyInput, onConnectToHost])
@@ -341,8 +351,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             setConnectError(null)
                                             setConnectSuccess(false)
                                             setStartedAs(null)
+                                            setClientLoading(false)
                                         } : handleConnect}
-                                        disabled={(!isConnected && (isConnecting || !apiKeyInput.trim()))}
+                                        disabled={(!isConnected && (clientLoading || isConnecting || !apiKeyInput.trim()))}
                                         className={`
                                         w-full py-2.5 px-4 rounded-xl text-sm font-medium
                                         transition-all duration-150
@@ -358,8 +369,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                                 <Unlink size={14} />
                                                 断开连接
                                             </>
-                                        ) : isConnecting ? (
-                                            '连接中...'
+                                        ) : clientLoading || isConnecting ? (
+                                            <>
+                                                <Loader2 size={14} className="animate-spin" />
+                                                连接中...
+                                            </>
                                         ) : (
                                             '连接'
                                         )}
